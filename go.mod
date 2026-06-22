@@ -8,7 +8,7 @@ replace (
 )
 
 require (
-	github.com/container-storage-interface/spec v1.9.0
+	github.com/container-storage-interface/spec v1.12.0
 	github.com/harvester/go-common v0.0.0-20240903083523-9576346cda75
 	github.com/harvester/webhook v0.1.5
 	github.com/kubernetes-csi/csi-lib-utils v0.18.1
