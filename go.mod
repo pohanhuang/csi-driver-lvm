@@ -3,7 +3,7 @@ module github.com/harvester/csi-driver-lvm
 go 1.25.7
 
 replace (
-	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.3.1
+	github.com/googleapis/gnostic => github.com/googleapis/gnostic v0.7.1
 	k8s.io/client-go => k8s.io/client-go v0.34.5
 )
 
