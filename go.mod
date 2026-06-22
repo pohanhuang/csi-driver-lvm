@@ -11,7 +11,7 @@ require (
 	github.com/container-storage-interface/spec v1.9.0
 	github.com/harvester/go-common v0.0.0-20240903083523-9576346cda75
 	github.com/harvester/webhook v0.1.5
-	github.com/kubernetes-csi/csi-lib-utils v0.18.1
+	github.com/kubernetes-csi/csi-lib-utils v0.24.0
 	github.com/kubernetes-csi/external-snapshotter/client/v8 v8.0.0
 	github.com/rancher/wrangler/v3 v3.0.0
 	github.com/sirupsen/logrus v1.9.3
