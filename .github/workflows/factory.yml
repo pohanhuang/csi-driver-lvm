@@ -19,11 +19,23 @@ env:
   webhookImageName: "harvester-lvm-csi-driver-webhook"
 
 jobs:
-  dapper-build:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+            platform: linux/amd64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            platform: linux/arm64
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: read
       id-token: write
+    env:
+      MK_PLATFORMS: ${{ matrix.platform }}
     steps:
     - name: Checkout code without refs
       if: ${{ inputs.refs == '' }}
@@ -35,13 +47,10 @@ jobs:
       with:
         ref: ${{ inputs.refs }}
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
-    - name: Run dapper
+    - name: Run CI (build + test + validate)
       run: make ci
 
     - name: Read some Secrets
@@ -51,6 +60,7 @@ jobs:
         secrets: |
           secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials username  | DOCKER_USERNAME ;
           secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials password  | DOCKER_PASSWORD
+
     - name: Login to Docker Hub
       uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
       if: ${{ inputs.push == true }}
@@ -58,32 +68,68 @@ jobs:
         username: ${{ env.DOCKER_USERNAME }}
         password: ${{ env.DOCKER_PASSWORD }}
 
-    - name: Docker Build (CSI Plugin)
+    - name: Docker Build and Push (CSI Plugin - ${{ matrix.arch }})
       uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
       with:
         provenance: false
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ matrix.platform }}
         file: package/Dockerfile
         push: ${{ inputs.push }}
-        tags: ${{ env.repo }}/${{ env.pluginImageName }}:${{ inputs.tag }}
+        tags: ${{ env.repo }}/${{ env.pluginImageName }}:${{ inputs.tag }}-${{ matrix.arch }}
 
-    - name: Docker Build (LVM Provisioner)
+    - name: Docker Build and Push (LVM Provisioner - ${{ matrix.arch }})
       uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
       with:
         provenance: false
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ matrix.platform }}
         file: package/Dockerfile.provisioner
         push: ${{ inputs.push }}
-        tags: ${{ env.repo }}/${{ env.provisionerImageName }}:${{ inputs.tag }}
+        tags: ${{ env.repo }}/${{ env.provisionerImageName }}:${{ inputs.tag }}-${{ matrix.arch }}
 
-    - name: Docker Build (LVM Webhook)
+    - name: Docker Build and Push (LVM Webhook - ${{ matrix.arch }})
       uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
       with:
         provenance: false
         context: .
-        platforms: linux/amd64,linux/arm64
+        platforms: ${{ matrix.platform }}
         file: package/Dockerfile.webhook
         push: ${{ inputs.push }}
-        tags: ${{ env.repo }}/${{ env.webhookImageName }}:${{ inputs.tag }}
+        tags: ${{ env.repo }}/${{ env.webhookImageName }}:${{ inputs.tag }}-${{ matrix.arch }}
+
+  manifest:
+    needs: build
+    if: ${{ inputs.push == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      matrix:
+        component:
+          - name: plugin
+            image: harvester-lvm-csi-plugin
+          - name: provisioner
+            image: harvester-lvm-provisioner
+          - name: webhook
+            image: harvester-lvm-csi-driver-webhook
+    steps:
+    - name: Read some Secrets
+      uses: rancher-eio/read-vault-secrets@d266f55186f80a893839f6e15662e67388e443e6 # v3
+      with:
+        secrets: |
+          secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials username  | DOCKER_USERNAME ;
+          secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials password  | DOCKER_PASSWORD
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_PASSWORD }}
+
+    - name: Create and Push Multi-arch Manifest
+      run: |
+        docker buildx imagetools create -t ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }} \
+          ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }}-amd64 \
+          ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }}-arm64
