@@ -137,7 +137,7 @@ jobs:
 
       - name: Clean up temporary packages
         run: |
-          agh api --method DELETE /user/packages/container/${{ matrix.component.image }}
+          gh api --method DELETE /user/packages/container/${{ matrix.component.image }}
           echo "Deleted package ${{ matrix.component.image }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
