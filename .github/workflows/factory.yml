@@ -135,19 +135,9 @@ jobs:
 
           echo "Multi-arch manifest created: ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }} (Docker Hub)"
 
-      - name: Delete temporary repo
+      - name: Clean up temporary packages
         run: |
-          for ARCH in amd64 arm64; do
-            TAG="temp-${{ github.run_id }}-${ARCH}"
-            VERSION_ID=$(curl -s \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/user/packages/container/${{ env.pluginImageName }}/versions" \
-              | jq -r ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id")
-            if [ -n "$VERSION_ID" ]; then
-              curl -s -X DELETE \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/user/packages/container/${{ env.pluginImageName }}/versions/${VERSION_ID}"
-            fi
-          done
+          agh api --method DELETE /user/packages/container/${{ matrix.component.image }}
+          echo "Deleted package ${{ matrix.component.image }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
