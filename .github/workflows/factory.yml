@@ -135,24 +135,19 @@ jobs:
 
           echo "Multi-arch manifest created: ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }} (Docker Hub)"
 
-      - name: Delete temporary tags
+      - name: Delete temporary repo
         run: |
           for ARCH in amd64 arm64; do
             TAG="temp-${{ github.run_id }}-${ARCH}"
-
             VERSION_ID=$(curl -s \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/user/packages/container/${{ env.repo }}%2F${{ matrix.component.image }}/versions" \
+              "https://api.github.com/user/packages/container/${{ env.pluginImageName }}/versions" \
               | jq -r ".[] | select(.metadata.container.tags[]? == \"${TAG}\") | .id")
-
             if [ -n "$VERSION_ID" ]; then
               curl -s -X DELETE \
                 -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/user/packages/container/${{ env.repo }}%2F${{ matrix.component.image }}/versions/${VERSION_ID}"
-              echo "Deleted ${{ env.repo }}/${{ matrix.component.image }}:${TAG}"
-            else
-              echo "Tag ${TAG} not found for ${{ env.repo }}/${{ matrix.component.image }}"
+                "https://api.github.com/user/packages/container/${{ env.pluginImageName }}/versions/${VERSION_ID}"
             fi
           done
