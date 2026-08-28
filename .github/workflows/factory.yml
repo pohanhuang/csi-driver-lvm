@@ -73,7 +73,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           file: package/Dockerfile
           push: ${{ inputs.push }}
-          tags: ${{ env.temp_registry }}/${{ env.repo }}/${{ env.pluginImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
+          tags: ${{ env.temp_registry }}/${{ github.repository_owner }}/${{ env.pluginImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
 
       - name: Docker Build and Push (LVM Provisioner - ${{ matrix.arch }})
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
@@ -83,7 +83,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           file: package/Dockerfile.provisioner
           push: ${{ inputs.push }}
-          tags: ${{ env.temp_registry }}/${{ env.repo }}/${{ env.provisionerImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
+          tags: ${{ env.temp_registry }}/${{ github.repository_owner }}/${{ env.provisionerImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
 
       - name: Docker Build and Push (LVM Webhook - ${{ matrix.arch }})
         uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
@@ -93,7 +93,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           file: package/Dockerfile.webhook
           push: ${{ inputs.push }}
-          tags: ${{ env.temp_registry }}/${{ env.repo }}/${{ env.webhookImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
+          tags: ${{ env.temp_registry }}/${{ github.repository_owner  }}/${{ env.webhookImageName }}:temp-${{ github.run_id }}-${{ matrix.arch }}
 
   manifest:
     needs: build
