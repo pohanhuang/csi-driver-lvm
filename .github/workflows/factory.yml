@@ -130,8 +130,8 @@ jobs:
         run: |
           docker buildx imagetools create \
             -t ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }} \
-            ${{ env.temp_registry }}/${{ env.repo }}/${{ matrix.component.image }}:temp-${{ github.run_id }}-amd64 \
-            ${{ env.temp_registry }}/${{ env.repo }}/${{ matrix.component.image }}:temp-${{ github.run_id }}-arm64
+            ${{ env.temp_registry }}/${{ github.repository_owner }}/${{ matrix.component.image }}:temp-${{ github.run_id }}-amd64 \
+            ${{ env.temp_registry }}/${{ github.repository_owner }}/${{ matrix.component.image }}:temp-${{ github.run_id }}-arm64
 
           echo "Multi-arch manifest created: ${{ env.repo }}/${{ matrix.component.image }}:${{ inputs.tag }} (Docker Hub)"
 
