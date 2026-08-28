@@ -14,10 +14,12 @@ on:
 
 env:
   temp_registry: "ghcr.io"
-  repo: "rancher"
+  repo: "hhcs9527"
   provisionerImageName: "harvester-lvm-provisioner"
   pluginImageName: "harvester-lvm-csi-plugin"
   webhookImageName: "harvester-lvm-csi-driver-webhook"
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
 jobs:
   build:
@@ -111,13 +113,6 @@ jobs:
           - name: webhook
             image: harvester-lvm-csi-driver-webhook
     steps:
-      - name: Read Secrets from Vault
-        uses: rancher-eio/read-vault-secrets@d266f55186f80a893839f6e15662e67388e443e6 # v3
-        with:
-          secrets: |
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials username | DOCKER_USERNAME ;
-            secret/data/github/repo/${{ github.repository }}/dockerhub/rancher/credentials password | DOCKER_PASSWORD ;
-
       - name: Login to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
