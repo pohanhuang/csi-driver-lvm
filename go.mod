@@ -16,7 +16,7 @@ require (
 	github.com/rancher/wrangler/v3 v3.0.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/urfave/cli/v2 v2.27.2
-	golang.org/x/net v0.38.0
+	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.44.0
 	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.36.5
